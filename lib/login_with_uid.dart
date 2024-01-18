@@ -1,5 +1,6 @@
 import 'package:cometchat_calls_uikit/cometchat_calls_uikit.dart';
 import 'package:deeptalk/dashboard.dart';
+import 'package:deeptalk/home.dart';
 import 'package:deeptalk/sign_up.dart';
 import 'package:deeptalk/utils/alert.dart';
 import 'package:deeptalk/utils/constants.dart';
@@ -192,8 +193,9 @@ class _LoginWithUIDState extends State<LoginWithUID> {
     //if login is successful
     if (_user != null) {
       //USERID = _user!.uid;
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const Dashboard()));
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const Home()));
     }
   }
 }

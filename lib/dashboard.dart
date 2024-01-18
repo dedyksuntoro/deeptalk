@@ -2,6 +2,7 @@ import 'package:deeptalk/call_logs/call_logs_dashboard.dart';
 import 'package:deeptalk/calls/calls_dashboard.dart';
 import 'package:deeptalk/conversations_dashboard.dart';
 import 'package:deeptalk/groups_dashboard.dart';
+import 'package:deeptalk/home.dart';
 import 'package:deeptalk/messages_dashboard.dart';
 import 'package:deeptalk/shared/shared_dashboard.dart';
 import 'package:deeptalk/users_dashboard.dart';
@@ -53,6 +54,23 @@ class _DashboardState extends State<Dashboard> {
                             color: cometChatTheme.palette.getAccent()))
                   ],
                 ),
+              ),
+              ModuleCard(
+                title: "Home",
+                leading: Image.asset(
+                  'assets/icons/conversations.png',
+                  height: 40,
+                  width: 40,
+                ),
+                description:
+                    "Conversations module contains all available components for listing Conversation objects\n"
+                    "To explore the available components tap here\n",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Home()),
+                  );
+                },
               ),
               ModuleCard(
                 title: "Conversations",
@@ -192,16 +210,16 @@ class _DashboardState extends State<Dashboard> {
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.call),
-            label: 'Calls',
+            icon: Icon(Icons.chat_rounded),
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            label: 'Camera',
+            icon: Icon(Icons.call_rounded),
+            label: 'Call',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chats',
+            icon: Icon(Icons.contacts_rounded),
+            label: 'Contact',
           ),
         ],
       ),
