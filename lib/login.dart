@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:cometchat_calls_uikit/cometchat_calls_uikit.dart';
 import 'package:cometchat_chat_uikit/cometchat_chat_uikit.dart';
+import 'package:deeptalk/core/secure_storage.dart';
 import 'package:deeptalk/create_account.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -13,33 +16,71 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  String? valueUID;
+
+  final storage = new FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
+
+  Future readSecureData(String key) async {
+    valueUID = await storage.read(key: key) ?? 'null';
+  }
+
+  Future writeSecureData(String key, String value) async {
+    await storage.write(key: key, value: value);
+  }
+
   @override
   void initState() {
     super.initState();
+    // cometChatInit();
 
-/**
-*CometChatUIKit should be initialized at the start of application. No need to initialize it again
-**/
-    UIKitSettings uiKitSettings = (UIKitSettingsBuilder()
-          ..callingExtension = CometChatCallingExtension()
-          ..subscriptionType = CometChatSubscriptionType.allUsers
-          ..autoEstablishSocketConnection = true
-          ..region = "us" //Replace with your region
-          ..appId = "251185a69a8e9aac" //replace with your app Id
-          ..authKey = "6413f67610b586c43f66f4494e5cc05d4a05770a"
-          ..extensions = CometChatUIKitChatExtensions
-              .getDefaultExtensions() //replace this with empty array you want to disable all extensions
-        ) //replace with your auth Key
-        .build();
-
-    CometChatUIKit.init(
-        uiKitSettings: uiKitSettings,
-        onSuccess: (String successMessage) {
-          debugPrint("Initialization completed successfully  $successMessage");
-        },
-        onError: (CometChatException e) {
-          debugPrint("Initialization failed with exception: ${e.message}");
-        });
+    readSecureData('UID').then((value) {
+      if (valueUID != 'null') {
+        CometChatUIKit.login(
+          valueUID.toString(),
+          onSuccess: (User user) {
+            // debugPrint(
+            //     "User logged in successfully  ${user.name}");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CometChatConversationsWithMessages(
+                  conversationsConfiguration: const ConversationsConfiguration(
+                    showBackButton: false,
+                    title: 'DeepTalk',
+                  ),
+                  startConversationConfiguration: ContactsConfiguration(
+                    contactsStyle: const ContactsStyle(
+                      selectedTabColor: Colors.transparent,
+                      tabBorderRadius: 0,
+                      tabColor: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+          onError: (CometChatException e) {
+            // debugPrint(
+            //     "Login failed with exception: ${e.message}");
+            EasyLoading.dismiss();
+            AwesomeDialog(
+              dismissOnBackKeyPress: false,
+              dismissOnTouchOutside: false,
+              context: context,
+              dialogType: DialogType.noHeader,
+              animType: AnimType.bottomSlide,
+              title: 'Login Failed $valueUID',
+              desc: 'UID Not Found',
+              btnOkOnPress: () {},
+            ).show();
+          },
+        );
+      }
+    });
   }
 
   @override
@@ -105,14 +146,47 @@ class _LoginState extends State<Login> {
                         CometChatUIKit.login(
                           customUidLogin,
                           onSuccess: (User user) {
-                            EasyLoading.dismiss();
                             // debugPrint(
                             //     "User logged in successfully  ${user.name}");
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CometChatUsersWithMessages()));
+                            EasyLoading.dismiss();
+                            writeSecureData('UID', user.uid).then((value) {
+                              readSecureData('UID').then((value) {
+                                if (valueUID != 'null') {
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            CometChatConversationsWithMessages(
+                                          conversationsConfiguration:
+                                              const ConversationsConfiguration(
+                                            showBackButton: false,
+                                            title: 'DeepTalk',
+                                          ),
+                                          startConversationConfiguration:
+                                              ContactsConfiguration(
+                                            contactsStyle: const ContactsStyle(
+                                              selectedTabColor:
+                                                  Colors.transparent,
+                                              tabBorderRadius: 0,
+                                              tabColor: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ));
+                                } else {
+                                  AwesomeDialog(
+                                    dismissOnBackKeyPress: false,
+                                    dismissOnTouchOutside: false,
+                                    context: context,
+                                    dialogType: DialogType.noHeader,
+                                    animType: AnimType.bottomSlide,
+                                    title: 'Local Storage Failed',
+                                    desc: 'Failed Process Local Storage',
+                                    btnOkOnPress: () {},
+                                  ).show();
+                                }
+                              });
+                            });
                           },
                           onError: (CometChatException e) {
                             // debugPrint(
